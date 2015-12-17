@@ -1,6 +1,10 @@
 #!/bin/bash
 
 # Send record in a loop on tcp session
+# This script requires a server to be established elsewhere listening
+# to the session originated here (i.e. "nc -l 11111", or some other TCP 
+# server listening on the port
+#
 # @todo: pass in session destination address and port as parameters
 # @todo: pass in file(s) to use as records
 # @todo: pass in parameter for how long to run the test
