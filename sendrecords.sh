@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # Send record in a loop on tcp session
 # This script requires a server to be established elsewhere listening
@@ -17,7 +17,7 @@
 rec="0100001C0010000080080010ABCDABCDABCDABCD1234567812345678";
 
 echo -n > inputfile
-tail -f inputfile | nc localhost 11111 &
+tail -f inputfile | nc 192.168.10.117 5555 &
 echo $rec;
 while true
 do
