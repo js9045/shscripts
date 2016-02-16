@@ -7,20 +7,26 @@
 #
 # @todo: pass in session destination address and port as parameters
 # @todo: pass in optional file(s) to use as records
-# @todo: pass in parameter for how long to run the test
 # @todo: when loop terminates or script is killed, clean up child process
 # @todo: enhance script to send data in multiple sessions
 # @todo: validate received data (as received data is handled elsewhere
 # not clear if that can be handled here.  If using a single driver system
 # with `netns`, perhaps we can compare output after it is written to a file
 
+# Default parameters, can be overriden through options
 loop=1
 interval=5
+host="localhost"
+port="5555"
 
 # Parse any options
-while getopts 'l:i:' OPTION
+while getopts 'l:i:h:p:' OPTION
 do
   case $OPTION in
+  h)  host="$OPTARG"
+      ;;
+  p)  port="$OPTARG"
+      ;;
   l)  loop="$OPTARG"
       ;;
   i)  interval="$OPTARG"
@@ -36,7 +42,7 @@ shift $(($OPTIND - 1))
 rec="0100001C0010000080080010ABCDABCDABCDABCD1234567812345678";
 
 echo -n > inputfile
-tail -f inputfile | nc "localhost" "5555" &
+tail -f inputfile | nc $host $port &
 echo $rec;
 while ((loop > 0))
 do
