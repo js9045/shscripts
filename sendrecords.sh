@@ -19,6 +19,7 @@ host="localhost"
 dport="5555"
 eport=
 sport_arg=
+esport_arg=
 tcp_pid=
 arbiter=
 debug=0
@@ -28,7 +29,7 @@ login="sent_${$}.hex"
 logout="output_${$}.hex"
 
 # Parse any options
-while getopts 'Dlr:i:h:s:d:c:a:e:' OPTION
+while getopts 'Dlr:i:h:s:d:c:a:e:f:' OPTION
 do
   case $OPTION in
   D)  debug=1
@@ -55,6 +56,8 @@ do
       ;;
   e)  eport="$OPTARG"
       ;;
+  f)  esport_arg="-p $OPTARG"
+      ;;
   ?)  printf "Usage: %s:[-l] [-i <interval_sec>] [-r <repeat number>] [-h <dest host>] [-s <src port>] [-d <dest port>] [-c <capture-file>] args\n" $(basename $0) >&2
       exit 2
       ;;
@@ -79,8 +82,8 @@ else
     printf "Start remote listening socket: ssh %s nc -l %s | xxd -p -c %s &\n" $host $dport $len
     ssh $host "sh -c 'nc -d -l $dport | xxd -p -c $len >$logout 2>&1 &'"
   else
-    printf "Start remote active socket: ssh %s nc -l %s | xxd -p -c %s &\n" $host $dport $len
-    ssh $host "sh -c 'nc -d $arbiter $eport | xxd -p -c $len >$logout 2>&1 &'"
+    printf "Start remote active socket: ssh %s nc -d %s %s %s | xxd -p -c %s &\n" $esport_arg $host $arbiter $eport $len
+    ssh $host "sh -c 'nc -d $esport_arg $arbiter $eport | xxd -p -c $len >$logout 2>&1 &'"
   fi
 fi
 
