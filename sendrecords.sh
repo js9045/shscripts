@@ -17,8 +17,10 @@ repeat=1
 interval=1
 host="localhost"
 dport="5555"
+eport=
 sport_arg=
 tcp_pid=
+arbiter=
 debug=0
 rec="0100001c0010000080080010abcdabcdabcdabcd1234567812345678";
 len=28
@@ -26,7 +28,7 @@ login="sent_${$}.hex"
 logout="output_${$}.hex"
 
 # Parse any options
-while getopts 'Dlr:i:h:s:d:c:' OPTION
+while getopts 'Dlr:i:h:s:d:c:a:e:' OPTION
 do
   case $OPTION in
   D)  debug=1
@@ -49,6 +51,10 @@ do
   c)  fileout="$OPTARG"
       cflag=1
       ;;
+  a)  arbiter="$OPTARG"
+      ;;
+  e)  eport="$OPTARG"
+      ;;
   ?)  printf "Usage: %s:[-l] [-i <interval_sec>] [-r <repeat number>] [-h <dest host>] [-s <src port>] [-d <dest port>] [-c <capture-file>] args\n" $(basename $0) >&2
       exit 2
       ;;
@@ -68,13 +74,13 @@ else
   # remote host
   # set up logging regardless of parameter flag
   log=1
-
   if [ $debug = 1 ]
   then
     printf "Start remote listening socket: ssh %s nc -l %s | xxd -p -c %s &\n" $host $dport $len
     ssh $host "sh -c 'nc -d -l $dport | xxd -p -c $len >$logout 2>&1 &'"
   else
     printf "Start remote active socket: ssh %s nc -l %s | xxd -p -c %s &\n" $host $dport $len
+    ssh $host "sh -c 'nc -d $arbiter $eport | xxd -p -c $len >$logout 2>&1 &'"
   fi
 fi
 
