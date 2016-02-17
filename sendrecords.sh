@@ -82,7 +82,7 @@ else
     printf "Start remote listening socket: ssh %s nc -l %s | xxd -p -c %s &\n" $host $dport $len
     ssh $host "sh -c 'nc -d -l $dport | xxd -p -c $len >$logout 2>&1 &'"
   else
-    printf "Start remote active socket: ssh %s nc -d %s %s %s | xxd -p -c %s &\n" $esport_arg $host $arbiter $eport $len
+    printf "Start remote active socket: ssh %s nc -d %s %s %s | xxd -p -c %s &\n" $host $esport_arg $arbiter $eport $len
     ssh $host "sh -c 'nc -d $esport_arg $arbiter $eport | xxd -p -c $len >$logout 2>&1 &'"
   fi
 fi
