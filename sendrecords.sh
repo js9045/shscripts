@@ -27,7 +27,7 @@ rec="0100001c0010000080080010abcdabcdabcdabcd1234567812345678";
 len=28
 login="sent_${$}.hex"
 #logout="output_${$}.hex"
-logout="output.hex"
+logout="output_${$}.hex"
 
 # Parse any options
 while getopts 'Dlr:i:h:s:d:c:a:e:f:n:' OPTION
@@ -87,7 +87,7 @@ else
     ssh $nodessh "sh -c 'nc -d -l $dport | xxd -p -c $len >$logout 2>&1 &'"
   else
     printf "Start remote active socket: ssh -n %s nc %s %s %s | xxd -p -c %s &\n" $nodessh "$esport_arg" $arbiter $eport $len
-    #ssh -n $nodessh "sh -c 'nc $esport_arg $arbiter $eport | xxd -p -c $len >$logout 2>&1 &'"
+    ssh -n $nodessh "sh -c 'nc $esport_arg $arbiter $eport --recv-only -o output.bin'"
   fi
 fi
 
@@ -133,6 +133,7 @@ then
   if [ "$host" != "localhost" ] 
   then
     # Get the output file from remote host
+    ssh -n $nodessh "sh -c 'xxd -p -c $len output.bin $logout'"
     scp $nodessh:$logout .
   fi
   printf "Diffing input and output records\n"
