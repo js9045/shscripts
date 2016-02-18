@@ -40,7 +40,6 @@ do
   l)  log=1
       ;;
   h)  host="$OPTARG"
-      nodessh="$host"
       ;;
   d)  dport="$OPTARG"
       ;;
@@ -85,8 +84,8 @@ else
     printf "Start remote listening socket: ssh %s nc -l %s | xxd -p -c %s &\n" $nodessh $dport $len
     ssh $nodessh "sh -c 'nc -d -l $dport | xxd -p -c $len >$logout 2>&1 &'"
   else
-    printf "Start remote active socket: ssh -n %s nc %s %s %s | xxd -p -c %s &\n" $nodessh "$esport_arg" $arbiter $eport $len
-    ssh -n $nodessh "sh -c 'nc $esport_arg $arbiter $eport --recv-only -o output.bin'"
+    printf "Start remote active socket: ssh -n %s nc %s %s %s --recv-only -o output.bin \n" $nodessh "$esport_arg" $arbiter $eport $len
+    ssh -n $nodessh "sh -c 'nc $esport_arg $arbiter $eport --recv-only -o output.bin &'"
   fi
 fi
 
