@@ -26,10 +26,11 @@ debug=0
 rec="0100001c0010000080080010abcdabcdabcdabcd1234567812345678";
 len=28
 login="sent_${$}.hex"
-logout="output_${$}.hex"
+#logout="output_${$}.hex"
+logout="output.hex"
 
 # Parse any options
-while getopts 'Dlr:i:h:s:d:c:a:e:f:' OPTION
+while getopts 'Dlr:i:h:s:d:c:a:e:f:n:' OPTION
 do
   case $OPTION in
   D)  debug=1
@@ -40,6 +41,7 @@ do
   l)  log=1
       ;;
   h)  host="$OPTARG"
+      nodessh="$host"
       ;;
   d)  dport="$OPTARG"
       ;;
@@ -57,6 +59,8 @@ do
   e)  eport="$OPTARG"
       ;;
   f)  esport_arg="-p $OPTARG"
+      ;;
+  n)  nodessh="$OPTARG"
       ;;
   ?)  printf "Usage: %s:[-l] [-i <interval_sec>] [-r <repeat number>] [-h <dest host>] [-s <src port>] [-d <dest port>] [-c <capture-file>] args\n" $(basename $0) >&2
       exit 2
@@ -79,11 +83,11 @@ else
   log=1
   if [ $debug = 1 ]
   then
-    printf "Start remote listening socket: ssh %s nc -l %s | xxd -p -c %s &\n" $host $dport $len
-    ssh $host "sh -c 'nc -d -l $dport | xxd -p -c $len >$logout 2>&1 &'"
+    printf "Start remote listening socket: ssh %s nc -l %s | xxd -p -c %s &\n" $nodessh $dport $len
+    ssh $nodessh "sh -c 'nc -d -l $dport | xxd -p -c $len >$logout 2>&1 &'"
   else
-    printf "Start remote active socket: ssh %s nc %s %s %s | xxd -p -c %s &\n" $host "$esport_arg" $arbiter $eport $len
-    ssh $host "sh -c 'nc $esport_arg $arbiter $eport | xxd -p -c $len >$logout 2>&1 &'"
+    printf "Start remote active socket: ssh -n %s nc %s %s %s | xxd -p -c %s &\n" $nodessh "$esport_arg" $arbiter $eport $len
+    #ssh -n $nodessh "sh -c 'nc $esport_arg $arbiter $eport | xxd -p -c $len >$logout 2>&1 &'"
   fi
 fi
 
@@ -129,7 +133,7 @@ then
   if [ "$host" != "localhost" ] 
   then
     # Get the output file from remote host
-    scp $host:$logout .
+    scp $nodessh:$logout .
   fi
   printf "Diffing input and output records\n"
   diff $login $logout
