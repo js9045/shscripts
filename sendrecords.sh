@@ -85,7 +85,7 @@ else
     ssh $nodessh "sh -c 'nc -d -l $dport | xxd -p -c $len >$logout 2>&1 &'"
   else
     printf "Start remote active socket: ssh -n %s nc %s %s %s --recv-only -o output.bin \n" $nodessh "$esport_arg" $arbiter $eport $len
-    ssh -n $nodessh "sh -c 'nc $esport_arg $arbiter $eport --recv-only -o output.bin &'"
+    ssh -n $nodessh "sh -c 'nc $esport_arg $arbiter $eport --recv-only -o output.bin >/dev/null 2>&1 &'"
   fi
 fi
 
