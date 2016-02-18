@@ -26,7 +26,6 @@ debug=0
 rec="0100001c0010000080080010abcdabcdabcdabcd1234567812345678";
 len=28
 login="sent_${$}.hex"
-#logout="output_${$}.hex"
 logout="output_${$}.hex"
 
 # Parse any options
@@ -133,7 +132,7 @@ then
   if [ "$host" != "localhost" ] 
   then
     # Get the output file from remote host
-    ssh -n $nodessh "sh -c 'xxd -p -c $len output.bin $logout'"
+    ssh -n $nodessh "xxd -p -c$len output.bin $logout"
     scp $nodessh:$logout .
   fi
   printf "Diffing input and output records\n"
