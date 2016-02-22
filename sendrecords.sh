@@ -27,6 +27,7 @@ rec="0100001c0010000080080010abcdabcdabcdabcd1234567812345678";
 len=28
 login="sent_${$}.hex"
 logout="output_${$}.hex"
+rem_pid=
 
 # Parse any options
 while getopts 'Dlr:i:h:s:d:c:a:e:f:n:' OPTION
@@ -81,11 +82,14 @@ else
   log=1
   if [ $debug = 1 ]
   then
-    printf "Start remote listening socket: ssh %s nc -l %s | xxd -p -c %s &\n" $nodessh $dport $len
-    ssh $nodessh "sh -c 'nc -d -l $dport | xxd -p -c $len >$logout 2>&1 &'"
+    printf "Start remote listening socket: \nssh %s nc -l %s | xxd -p -c %s &\n" \
+           $nodessh $dport $len
+    #ssh -n $nodessh "ncat -l $dport --recv-only -o output.bin >/dev/null 2>&1 &"
   else
-    printf "Start remote active socket: ssh -n %s nc %s %s %s --recv-only -o output.bin \n" $nodessh "$esport_arg" $arbiter $eport $len
-    ssh -n $nodessh "sh -c 'nc $esport_arg $arbiter $eport --recv-only -o output.bin >/dev/null 2>&1 &'"
+    printf "Start remote active socket: \
+            \nssh -n %s ncat %s %s %s --recv-only -o output.bin \n" \
+            $nodessh "$esport_arg" $arbiter $eport $len
+    ssh -n $nodessh "sh -c 'ncat $esport_arg $arbiter $eport --recv-only -o output.bin >/dev/null 2>&1 &'"
   fi
 fi
 
@@ -131,7 +135,7 @@ then
   if [ "$host" != "localhost" ] 
   then
     # Get the output file from remote host
-    ssh -n $nodessh "xxd -p -c$len output.bin $logout"
+    ssh -n $nodessh "xxd -p -c$len output.bin > $logout"
     scp $nodessh:$logout .
   fi
   printf "Diffing input and output records\n"
