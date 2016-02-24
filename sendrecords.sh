@@ -114,7 +114,8 @@ while ((repeat > 0))
 do
     echo -n "."
     echo -n $rec | xxd -r -p >> inputfile;
-    [ $log = 1 ] && echo $rec >> $login
+    # Strip bytes 3 - 7 for the log as the hw output doesn't match
+    [ $log = 1 ] && echo ${rec:0:2}${rec:8} >> $login
     sleep $interval;
     let repeat--
 done
