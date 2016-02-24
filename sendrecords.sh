@@ -23,7 +23,11 @@ esport_arg=
 tcp_pid=
 arbiter=
 debug=0
-rec="0100001c0010000080080010abcdabcdabcdabcd1234567812345678";
+rec[0]="0100001c0010000080080010aacdabcdabcdabcd1234567812345678";
+rec[1]="0100001c0010000080080010bbcdabcdabcdabcd1234567812345678";
+rec[2]="0100001c0010000080080010cccdabcdabcdabcd1234567812345678";
+rec[3]="0100001c0010000080080010ddcdabcdabcdabcd1234567812345678";
+rec[4]="0100001c0010000080080010eecdabcdabcdabcd1234567812345678";
 len=28
 login="sent_${$}.hex"
 logout="output_${$}.hex"
@@ -116,9 +120,10 @@ printf "%s\n------\n" $rec
 while ((repeat > 0))
 do
     echo -n "."
-    echo -n $rec | xxd -r -p >> inputfile;
+    record=$rec[$(($repeat%${#rec[@]}))]
+    echo -n $record | xxd -r -p >> inputfile;
     # Strip bytes 3 - 7 for the log as the hw output doesn't match
-    [ $log = 1 ] && echo ${rec:0:2}${rec:16} >> $login
+    [ $log = 1 ] && echo ${record:0:2}${record:16} >> $login
     sleep $interval;
     let repeat--
 done
