@@ -150,7 +150,9 @@ then
   if [ "$host" != "localhost" ] 
   then
     # Get the output file from remote host
-    ssh -n $nodessh "xxd -p -c$len output.bin > $logout"
+    ssh -n $nodessh "xxd -p -c$len output.bin > tmp.hex"
+    ssh_cmd="while read in; do echo \${in:0:2}\${in:16} >> $logout; done < tmp.hex"
+    ssh -n $nodessh "$ssh_cmd"
     scp $nodessh:$logout .
   fi
   printf "Diffing input and output records\n"
