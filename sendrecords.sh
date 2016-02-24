@@ -82,14 +82,17 @@ else
   log=1
   if [ $debug = 1 ]
   then
+    # for testing script across multiple hosts without a ximm
     printf "Start remote listening socket: \nssh %s nc -l %s | xxd -p -c %s &\n" \
            $nodessh $dport $len
-    #ssh -n $nodessh "ncat -l $dport --recv-only -o output.bin >/dev/null 2>&1 &"
+    ssh_cmd="ncat -l $dport --recv-only -o output.bin >/dev/null 2>&1 & echo \$! "
+    rem_pid=$( ssh -n $nodessh "$ssh_cmd" )
   else
     printf "Start remote active socket: \
             \nssh -n %s ncat %s %s %s --recv-only -o output.bin \n" \
             $nodessh "$esport_arg" $arbiter $eport $len
-    ssh -n $nodessh "sh -c 'ncat $esport_arg $arbiter $eport --recv-only -o output.bin >/dev/null 2>&1 &'"
+    ssh_cmd="ncat $esport_arg $arbiter $eport --recv-only -o output.bin >/dev/null 2>&1 & echo \$! "
+    rem_pid=$( ssh -n $nodessh "$ssh_cmd" )
   fi
 fi
 
@@ -127,6 +130,10 @@ if [ "$tcp_pid" ]
 then 
   sudo kill $tcp_pid
 fi
+if [ "$rem_pid" }
+then 
+  ssh -n $nodessh "kill -9 $rem_pid"
+fi  
 rm inputfile
 
 sleep 3
