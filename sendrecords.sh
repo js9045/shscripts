@@ -130,7 +130,7 @@ if [ "$tcp_pid" ]
 then 
   sudo kill $tcp_pid
 fi
-if [ "$rem_pid" }
+if [ "$rem_pid" ]
 then 
   ssh -n $nodessh "kill -9 $rem_pid"
 fi  
