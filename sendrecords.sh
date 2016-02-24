@@ -120,7 +120,7 @@ printf "%s\n------\n" $rec
 while ((repeat > 0))
 do
     echo -n "."
-    record=$rec[$(($repeat%${#rec[@]}))]
+    record=${rec[$(($repeat%${#rec[@]}))]}
     echo -n $record | xxd -r -p >> inputfile;
     # Strip bytes 3 - 7 for the log as the hw output doesn't match
     [ $log = 1 ] && echo ${record:0:2}${record:16} >> $login
