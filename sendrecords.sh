@@ -129,6 +129,9 @@ do
 done
 echo
 
+# Sleep a bit before closing the sessions.
+sleep 3
+
 # Clean up background process
 kill -9 $child $((child - 1))
 if [ "$tcp_pid" ]
@@ -141,7 +144,6 @@ then
 fi  
 rm inputfile
 
-sleep 3
 # Validate the data
 if [ $log = 1 ] 
 then
