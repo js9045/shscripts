@@ -190,9 +190,10 @@ then
     ssh -n $nodessh "$cmd"
     sleep 1
     scp $nodessh:$logout .
+  else
+    eval $cmd
   fi
   printf "Diffing input and output records\n"
-  eval $cmd
   diff $login $logout
 fi
 
