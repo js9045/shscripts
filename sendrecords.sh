@@ -194,6 +194,7 @@ then
     eval $cmd
   fi
   printf "Diffing input and output records\n"
+  ls -l *${$}*
   diff $login $logout
 fi
 

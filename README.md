@@ -29,3 +29,5 @@ sendrecords.sh [-HDl] [-i <interval_sec>] [-r <repeat number>] [-h <dest host>] 
 ./sendrecords.sh -n eipi -m 256 -h 10.0.0.17 -s 5454 -d 5555 -a 10.6.6.6 -e 6666 -f 6660
 ```
 
+To run tests with the `-m` option, you must have a copy of our transport jar in the local directory.
+
