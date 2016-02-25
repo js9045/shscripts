@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+echo "bash version: $(/usr/bin/env bash -version)"
 
 # Send record in a loop on tcp session
 # This script requires a server to be established elsewhere listening
@@ -8,7 +9,6 @@
 # @todo: pass in optional file(s) to use as records
 # @todo: enhance script to send data in multiple sessions
 # @todo: deal when payload length > 256 as xxd only supports up to 256 columns
-# @todo: support active remote host
 
 # Flags and default parameters, can be overriden through options
 cflag=
@@ -32,9 +32,11 @@ len=$((${#rec[0]}/2))
 login="sent_${$}.hex"
 logout="output_${$}.hex"
 rem_pid=
+mflag=
 
 usage="$(basename $0):[-HDl] [-i <interval_sec>] [-r <repeat number>] \
 [-h <dest host>] [-s <src port>] [-d <dest port>] [-c <capture-file>] \
+[-m <mss>] \
 \n  -H: display this message \
 \n  -D: special script debug mode \
 \n  -l: log sent and received records \
@@ -48,10 +50,12 @@ usage="$(basename $0):[-HDl] [-i <interval_sec>] [-r <repeat number>] \
 \n  -f <sport>: source port of reducer session \
 \n  -c <filename>: filename to capture tcpdump when -D flag is set \
 \n  -n <host>: hostname or IP address of reducer node, used for ssh connection\
+\n  -m <mss>: mss size to test (tests all possible sizes of keys and values)
+\n            overrides static record
 \n"
 
 # Parse any options
-while getopts 'HDli:r:h:s:d:a:e:f:c:n:' OPTION
+while getopts 'HDli:r:h:s:d:a:e:f:c:n:m:' OPTION
 do
   case $OPTION in
   H)  printf "Usage: $usage"
@@ -85,6 +89,12 @@ do
       ;;
   n)  nodessh="$OPTARG"
       ;;
+  m)  mss="$OPTARG"
+      rec=
+      mflag=1
+      len=$mss
+      repeat=$(($mss-12-1))
+      ;;
   ?)  printf "Usage: $usage" >&2
       exit 2
       ;;
@@ -98,7 +108,7 @@ shift $(($OPTIND - 1))
 if [ "$host" == "localhost" ] 
 then
   printf "Start listening socket: nc -d -l %s | xxd -p -c %s &\n" $dport $len
-  [ $log = 1 ] && { nc -d -l $dport | xxd -p -c $len > $logout & } \
+  [ $log = 1 ] && { nc -d -l $dport | xxd -p -c $len > tmp.hex & } \
                || { nc -d -l $dport | xxd -p -c $len & }
 else
   # remote host
@@ -135,11 +145,17 @@ echo -n > inputfile
 tail -f inputfile | nc $sport_arg $host $dport &
 # Store the background process pid
 child=$!
-printf "%s\n------\n" $rec
+
 while ((repeat > 0))
 do
+    if [ $mflag = 1 ] 
+    then
+      record=$(java -cp xockets-hadoop-transport-1.0-SNAPSHOT-jar-with-dependencies.jar com.xockets.XocketsEncode $mss 1 $repeat $(($mss-12-$repeat))) 
+    else 
+      record=${rec[$(($repeat%${#rec[@]}))]}
+    fi
+    record=${record,,}
     echo -n "."
-    record=${rec[$(($repeat%${#rec[@]}))]}
     echo -n $record | xxd -r -p >> inputfile;
     # Strip bytes 3 - 7 for the log as the hw output doesn't match
     [ $log = 1 ] && echo ${record:0:2}${record:16} >> $login
@@ -166,16 +182,17 @@ rm inputfile
 # Validate the data
 if [ $log = 1 ] 
 then
+  cmd="while read in; do echo \${in:0:2}\${in:16} >> $logout; done < tmp.hex"
   if [ "$host" != "localhost" ] 
   then
     # Get the output file from remote host
     ssh -n $nodessh "xxd -p -c$len output.bin > tmp.hex"
-    ssh_cmd="while read in; do echo \${in:0:2}\${in:16} >> $logout; done < tmp.hex"
-    ssh -n $nodessh "$ssh_cmd"
+    ssh -n $nodessh "$cmd"
     sleep 1
     scp $nodessh:$logout .
   fi
   printf "Diffing input and output records\n"
+  eval $cmd
   diff $login $logout
 fi
 
