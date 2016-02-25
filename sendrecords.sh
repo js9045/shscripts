@@ -28,15 +28,35 @@ rec[1]="0100001c0010000080080010bbcdabcdabcdabcd1234567812345678";
 rec[2]="0100001c0010000080080010cccdabcdabcdabcd1234567812345678";
 rec[3]="0100001c0010000080080010ddcdabcdabcdabcd1234567812345678";
 rec[4]="0100001c0010000080080010eecdabcdabcdabcd1234567812345678";
-len=28
+len=${#rec[0]}
 login="sent_${$}.hex"
 logout="output_${$}.hex"
 rem_pid=
 
+usage="$(basename $0):[-HDl] [-i <interval_sec>] [-r <repeat number>] \
+[-h <dest host>] [-s <src port>] [-d <dest port>] [-c <capture-file>] \
+\n  -H: display this message \
+\n  -D: special script debug mode \
+\n  -l: log sent and received records \
+\n  -i <sec>: interval between records in seconds (or fractions) \
+\n  -r <num>: number of records to send \
+\n  -h <ip>: destination host IP for mapper session \
+\n  -s <sport>: source port for mapper session \
+\n  -d <dport>: destination port for mapper session \
+\n  -a <ip>: host IP of arbiter, i.e. destination address of reducer session \
+\n  -e <dport>: destination port of reducer session \
+\n  -f <sport>: source port of reducer session \
+\n  -c <filename>: filename to capture tcpdump when -D flag is set \
+\n  -n <host>: hostname or IP address of reducer node, used for ssh connection\
+\n"
+
 # Parse any options
-while getopts 'Dlr:i:h:s:d:c:a:e:f:n:' OPTION
+while getopts 'HDli:r:h:s:d:a:e:f:c:n:' OPTION
 do
   case $OPTION in
+  H)  printf "Usage: $usage"
+      exit 0
+      ;;
   D)  debug=1
       # for local debugging/development of script through localhost.
       # with the remote host in a listening connection.  For real Arbiter
@@ -44,18 +64,15 @@ do
       ;;
   l)  log=1
       ;;
-  h)  host="$OPTARG"
-      ;;
-  d)  dport="$OPTARG"
-      ;;
-  s)  sport_arg="-p $OPTARG"
+  i)  interval="$OPTARG"
       ;;
   r)  repeat="$OPTARG"
       ;;
-  i)  interval="$OPTARG"
+  h)  host="$OPTARG"
       ;;
-  c)  fileout="$OPTARG"
-      cflag=1
+  s)  sport_arg="-p $OPTARG"
+      ;;
+  d)  dport="$OPTARG"
       ;;
   a)  arbiter="$OPTARG"
       ;;
@@ -63,9 +80,12 @@ do
       ;;
   f)  esport_arg="-p $OPTARG"
       ;;
+  c)  fileout="$OPTARG"
+      cflag=1
+      ;;
   n)  nodessh="$OPTARG"
       ;;
-  ?)  printf "Usage: %s:[-l] [-i <interval_sec>] [-r <repeat number>] [-h <dest host>] [-s <src port>] [-d <dest port>] [-c <capture-file>] args\n" $(basename $0) >&2
+  ?)  printf "Usage: $usage" >&2
       exit 2
       ;;
   esac
@@ -101,9 +121,8 @@ else
 fi
 
 # If set enable tcpdump capture of the session, needs passwd-less sudo support
-if [ "$cflag" ]
+if [ "$cflag" ] && [ "$debug" ]
 then
-# sudo tcpdump -i lo0 -n -w $fileout dst port $dport &
   sudo tcpdump -i lo0 -n dst port $dport > $fileout &
   tcp_pid=$!
 fi
@@ -153,6 +172,7 @@ then
     ssh -n $nodessh "xxd -p -c$len output.bin > tmp.hex"
     ssh_cmd="while read in; do echo \${in:0:2}\${in:16} >> $logout; done < tmp.hex"
     ssh -n $nodessh "$ssh_cmd"
+    sleep 1
     scp $nodessh:$logout .
   fi
   printf "Diffing input and output records\n"
