@@ -32,7 +32,7 @@ len=$((${#rec[0]}/2))
 login="sent_${$}.hex"
 logout="output_${$}.hex"
 rem_pid=
-mflag=
+mflag=0
 
 usage="$(basename $0):[-HDl] [-i <interval_sec>] [-r <repeat number>] \
 [-h <dest host>] [-s <src port>] [-d <dest port>] [-c <capture-file>] \
