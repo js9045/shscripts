@@ -190,6 +190,7 @@ then
     ssh -n $nodessh "$cmd"
     sleep 1
     scp $nodessh:$logout .
+    ssh -n $nodessh "rm tmp.hex $logout"
   else
     eval $cmd
   fi
