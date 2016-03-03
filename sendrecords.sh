@@ -193,6 +193,7 @@ then
     ssh -n $nodessh "rm tmp.hex $logout"
   else
     eval $cmd
+    rm tmp.hex
   fi
   printf "Diffing input and output records\n"
   ls -l *${$}*
